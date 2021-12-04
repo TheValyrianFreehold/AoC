@@ -1,3 +1,5 @@
+open Str
+
 let preberi_datoteko ime_datoteke =
     let chan = open_in ime_datoteke in
     let vsebina = really_input_string chan (in_channel_length chan) in
@@ -122,14 +124,84 @@ module Solver2 : Solver = struct
         let lines = List.lines data in
         string_of_int((usmerjena_vsota lines 0) * (vsota_horz lines))        
 end
+
+module Solver3 : Solver = struct
+
+    let counter sez place =
+        let all = List.length sez
+        in
+        let rec aux acc = function
+            | [] -> acc
+            | x :: xs -> if Char.escaped(String.get x place) = "1" then aux (acc + 1) xs else aux (acc) xs
+        in
+        let count = aux 0 sez
+        in
+        if 2 * count >= all then 1 else 0
+
+    let rec get_new_list sez common holder place =
+        match sez with
+        | [] -> holder
+        | x :: xs -> if Char.escaped(String.get x place) = common then (get_new_list xs common (x::holder) place) else (get_new_list xs common holder place)
+
+    let rec get_rating_o sez place =
+        if place = 12 then sez else
+        let common = string_of_int(counter sez place) in
+        match sez with
+        | [_] -> sez
+        | list -> get_rating_o (get_new_list list common [] place) (place + 1)
+
+    let rec get_rating_c sez place =
+        if place = 12 then sez else
+        let common = if counter sez place = 1 then "0" else "1"
+        in
+        match sez with
+        | [_] -> sez
+        | list -> get_rating_c (get_new_list list common [] place) (place + 1)
+
+    let convert_sez sez =
+        let rec aux acc = function
+            | 12 -> acc
+            | n -> aux (acc + (counter sez n) * int_of_float((2.) ** (float_of_int(11 - n)))) (n + 1)
+        in aux 0 0
+
+    let converter binary = 
+        let rec aux acc = function
+            | 12 -> acc
+            | n -> aux(acc + int_of_string(Char.escaped(String.get binary n)) * int_of_float((2.) ** (float_of_int(11 - n)))) (n + 1)
+        in aux 0 0 
+
+    let naloga1 data = 
+        let lines = List.lines data
+        in
+        let value = convert_sez lines
+        in
+        string_of_int(value * (4095 - value))
+
+    let naloga2 data _part1 = 
+        let lines = List.lines data
+        in
+        string_of_int((converter (List.hd (get_rating_o lines 0))) * (converter (List.hd (get_rating_c lines 0))))
+
+end
+
+module Solver4 : Solver = struct
+    
+    let naloga1 data = ""
+
+    let naloga2 data _part1 = ""
+
+end
 (* Poženemo zadevo *)
 let choose_solver : string -> (module Solver) = function
     | "1" -> (module Solver1)
     | "2" -> (module Solver2)
+    | "3" -> (module Solver3)
+    | "4" -> (module Solver4)
+
     | _ -> failwith "Ni še rešeno"
 
 let main () =
-    let day = "2" in
+    let day = "4" in
     print_endline ("Solving DAY: " ^ day);
     let (module Solver) = choose_solver day in
     let input_data = preberi_datoteko ("data/day_" ^ day ^ ".in") in
