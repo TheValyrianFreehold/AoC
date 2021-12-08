@@ -1,5 +1,3 @@
-open Str
-
 let preberi_datoteko ime_datoteke =
     let chan = open_in ime_datoteke in
     let vsebina = really_input_string chan (in_channel_length chan) in
@@ -181,27 +179,80 @@ module Solver3 : Solver = struct
         let lines = List.lines data
         in
         string_of_int((converter (List.hd (get_rating_o lines 0))) * (converter (List.hd (get_rating_c lines 0))))
-
 end
 
 module Solver4 : Solver = struct
+        
+    let naloga1 data = ""
+
+    let naloga2 data _part1 = ""
+end
+
+module Solver5 : Solver = struct
     
     let naloga1 data = ""
 
     let naloga2 data _part1 = ""
-
 end
+
+module Solver6 : Solver = struct
+    
+    let naloga1 data = ""
+
+    let naloga2 data _part1 = ""
+end
+
+module Solver7 : Solver = struct
+    
+    let median list = 
+        let middle = (List.length list) / 2 in
+        let sorted = (List.sort compare list) in
+        List.nth sorted middle
+
+    let f list =
+        fun n -> let rec aux acc = function | [] -> acc | x :: xs -> aux (acc + (abs (x - n)) * (1 + abs (x - n))) xs in (aux 0 list) / 2
+
+    let rec make_range max = 
+        match max with
+        | 0 -> []
+        | n -> n :: make_range (max - 1)
+
+    let sum_diff list value = 
+        let rec aux acc = function
+        | [] -> acc
+        | x :: xs -> aux (acc + abs (x - value)) xs
+        in aux 0 list
+
+    let naloga1 data = 
+        let lines = List.lines data in
+        let lines_arr = String.split_on_char (Char.chr 44) (List.hd lines) in
+        let values = List.map int_of_string lines_arr in
+        string_of_int (sum_diff values (median values))
+
+    let naloga2 data _part1 = 
+        let lines = List.lines data in
+        let lines_arr = String.split_on_char (Char.chr 44) (List.hd lines) in
+        let values = List.map int_of_string lines_arr in
+        let funct = f values in
+        let range = make_range 2000 in
+        let usage = List.map funct range in
+        string_of_int (List.hd (List.sort compare usage))
+end
+
 (* Poženemo zadevo *)
 let choose_solver : string -> (module Solver) = function
     | "1" -> (module Solver1)
     | "2" -> (module Solver2)
     | "3" -> (module Solver3)
     | "4" -> (module Solver4)
+    | "5" -> (module Solver5)
+    | "6" -> (module Solver6)
+    | "7" -> (module Solver7)
 
     | _ -> failwith "Ni še rešeno"
 
 let main () =
-    let day = "4" in
+    let day = "7" in
     print_endline ("Solving DAY: " ^ day);
     let (module Solver) = choose_solver day in
     let input_data = preberi_datoteko ("data/day_" ^ day ^ ".in") in
